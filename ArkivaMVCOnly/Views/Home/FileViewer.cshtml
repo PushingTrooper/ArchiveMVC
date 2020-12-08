@@ -1,0 +1,335 @@
+﻿
+@{
+    ViewBag.Title = "FileViewer";
+    string zyra = "";
+    string nrKut = "";
+    string rafti = "";
+}
+<style>
+    .form-container-view-doc {
+        max-width: 420px;
+        padding: 10px;
+        background-color: white;
+        position: absolute;
+        top: 8%;
+        left: 26%;
+        border-radius: 10px;
+    }
+
+        /* Full-width input fields */
+        .form-container-view-doc input[type=text], .form-container input[type=password] {
+            width: 100%;
+            padding: 15px;
+            margin: 5px 0 22px 0;
+            border: none;
+            background: #f1f1f1;
+        }
+
+            /* When the inputs get focus, do something */
+            .form-container-view-doc input[type=text]:focus, .form-container input[type=password]:focus {
+                background-color: #ddd;
+                outline: none;
+            }
+
+        /* Add a red background color to the cancel button */
+        .form-container-view-doc .cancel {
+            background-color: red;
+        }
+
+        /* Add some hover effects to buttons */
+        .form-container-view-doc .btn:hover, .open-button:hover {
+            opacity: 1;
+        }
+</style>
+
+<form id="viewPopUp" class="form-container-view-doc" style="width: 50%; max-width: none; min-height: 500px; overflow: hidden; max-height:90%">
+    <div class="row px-4 align-items-center" style="margin-top: 15px; border-bottom: 1px black;">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-left">
+                <div class="col-sm-12 pl-0 pr-0-mob" style="border-bottom: 1px solid black; width: 99%; left: 5px;">
+                    @if (Session["docId"] != null)
+                    {
+                        int docId = int.Parse(Session["docId"] as string);
+                        using (User db = new User())
+                        {
+                            var data = (from doc in db.TJ_Dokument
+                                        where doc.IDTJ_Dokument == docId
+                                        group doc by new { doc.dokumenti, doc.emri_dokumentit, doc.vend_zyra, doc.vend_nr_kutise, doc.vend_rafti } into tempDocs
+                                        select new { tempDocs.Key }).ToList();
+
+                            zyra = data[0].Key.vend_zyra;
+                            nrKut = data[0].Key.vend_nr_kutise;
+                            rafti = data[0].Key.vend_rafti;
+
+                            <h3 class="col-sm-12" style="margin-top: 6px;">@data[0].Key.emri_dokumentit</h3>
+                        }
+                    }
+                    <input type="button" class="submit clear" title="Hiq tabelen" onclick="closeViewer()" style="margin-left: 36px; margin-top: 5px; position:absolute; right: 0; border:none;" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- BEGIN: Vendodhja fizike e dokumentit-->
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-right">
+                <label class="col-sm-12 ealb-sm-form-text col-form-label col-form-label-sm text-md-left lbl">Vendodhja fizike e dokumentit</label>
+                <div class="col-sm-11" style="padding-left:0;">
+                    <div class="col-sm-4 pl-0 pr-0-mob" style="padding-right: 0px;">
+                        <input type="text" id="edZyraTxtBox" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Zyra" value="@zyra"/>
+                    </div>
+                    <div class="col-sm-4 pl-0 pr-0-mob" style="padding-right: 0px;">
+                        <input type="text" id="edNrKutiseTxtBox" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Nr i kutisë" value="@nrKut" />
+                    </div>
+                    <div class="col-sm-4 pl-0 pr-0-mob">
+                        <input type="text" id="edRaftiTxtBox" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Rafti" value="@rafti"/>
+                    </div>
+                </div>
+                <button id="btnRuaj"
+                        type="button"
+                        onclick="saveLocation()"
+                        class="btn btn-sm opt-btn mb-1"
+                        style="height:30px; width:75px; position: absolute; right:0; top: 32px;">
+                    Ruaj
+                </button>
+            </div>
+        </div>
+        <!-- END: Vendodhja fizike e dokumentit -->
+    </div>
+    <!-- BEGIN: Fusha indeksimit -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-right">
+                <label class="col-sm-8 ealb-sm-form-text col-form-label col-form-label-sm text-md-left lbl required-name">Fusha indeksimit</label>
+                <div class="col-sm-12 pl-0 pr-0-mob">
+                    <input id="edFushaIndexTxtBox" type="text" class="form-control form-control-sm ealb-sm-form-input col-sm-12" maxlength="10"  style="max-width: 90%;" />
+                    <input type="button" class="submit add" onclick="addIndex()" title="Shto" style="margin-left: 36px; margin-top: 5px; position:absolute; right: 0;" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END: Fusha indeksimit -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-right">
+                @{
+                    if (Session["docId"] != null)
+                    {
+                        int docId = int.Parse(Session["docId"] as string);
+                        using (User db = new User())
+                        {
+                            var data = (from doc in db.TJ_Dokument
+                                        where doc.IDTJ_Dokument == docId
+                                        group doc by new { doc.dokumenti, doc.emri_dokumentit, doc.fusha_indeksimit } into tempDocs
+                                        select new { tempDocs.Key }).ToList();
+
+                            string emriDoc = data[0].Key.emri_dokumentit;
+                            int indexOfPoint = emriDoc.LastIndexOf('.') + 1;
+                            string type = emriDoc.Substring(indexOfPoint, emriDoc.Length - indexOfPoint);
+                            string typeOfDoc = "";
+                            string fshIdx = data[0].Key.fusha_indeksimit;
+                            string[] indexes = fshIdx.Split(';');
+
+                            <div id="fushat" class="col-sm-12 pl-0 pr-0-mob">
+                                @for (int i = 0; i < indexes.Count() - 1; i++)
+                                {
+                                    <p style="width:min-content; float:left;">@indexes[i];</p>
+                                }
+                            </div>
+
+                            string width = "auto";
+                            switch (type)
+                            {
+                                case "pdf":
+                                    typeOfDoc = "application/pdf";
+                                    width = "100%";
+                                    break;
+                                case "jpg":
+                                    typeOfDoc = "image/jpeg";
+                                    width = "auto";
+                                    break;
+                                case "png":
+                                    typeOfDoc = "image/png";
+                                    width = "auto";
+                                    break;
+                            }
+
+                            if (!typeOfDoc.IsEmpty())
+                            {
+                                <object data="data:@typeOfDoc;base64,@System.Convert.ToBase64String((Byte[])data[0].Key.dokumenti)" type="@typeOfDoc" width="@width" height="500px" style="padding-left:15px; padding-right:15px; max-width: 100%; padding-bottom: 26px;">
+                                    <embed src="data:@typeOfDoc;base64, @System.Convert.ToBase64String((Byte[])data[0].Key.dokumenti)" type="@typeOfDoc" />
+                                </object>
+                            }
+                            else
+                            {
+                                switch (type)
+                                {
+                                    case "docx":
+                                        typeOfDoc = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                                        break;
+                                    case "xlsx":
+                                        typeOfDoc = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                                        break;
+                                    case "pptx":
+                                        typeOfDoc = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+                                        break;
+                                    case "doc":
+                                        typeOfDoc = "application/msword";
+                                        break;
+                                    case "xls":
+                                        typeOfDoc = "application/vnd.ms-excel";
+                                        break;
+                                    case "ppt":
+                                        typeOfDoc = "application/vnd.ms-powerpoint";
+                                        break;
+                                    case "odt":
+                                        typeOfDoc = "application/vnd.oasis.opendocument.text";
+                                        break;
+
+                                }
+                                var docData = (Byte[])data[0].Key.dokumenti;
+
+
+
+                                <div class="col-sm-12">
+                                    <div class="form-group mb-1align-items-right">
+                                        <button class="btn btn-sm opt-btn mb-1"
+                                                style="height:30px; width:134px;"
+                                                type="button"
+                                                onclick="downloadDoc('@System.Convert.ToBase64String(docData)', '@typeOfDoc', '@data[0].Key.emri_dokumentit')">
+                                            Shkarko dokumentin
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        <p>Dicka shkoi keq, provoni perseri</p>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <!-- fundi i div te preview te dokumentit ose shkarkimit, sipas llojit te dokumentit -->
+</form>
+<script>
+    function saveLocation() {
+        var zyra = document.getElementById("edZyraTxtBox").value;
+        var nrKut = document.getElementById("edNrKutiseTxtBox").value;
+        var rafti = document.getElementById("edRaftiTxtBox").value;
+
+        var numOfErrors = 0;
+        if (zyra === "") {
+            alert("Ju lutem plotësoni fushën e zyrës");
+        } else if (nrKut === "") {
+            alert("Ju lutem plotësoni fushën e numrit të kutisë");
+        } else if (rafti === "") {
+            alert("Ju lutem plotësoni fushën e rafit");
+        }
+
+        if (rafti === "") {
+            document.getElementById("edRaftiTxtBox").focus();
+            document.getElementById("edRaftiTxtBox").style.border = "solid 1px red";
+            numOfErrors++;
+        } else {
+            document.getElementById("edRaftiTxtBox").style.border = "none";
+        }
+        if (nrKut==="") {
+            document.getElementById("edNrKutiseTxtBox").focus();
+            document.getElementById("edNrKutiseTxtBox").style.border = "solid 1px red";
+            numOfErrors++;
+        } else {
+            document.getElementById("edNrKutiseTxtBox").style.border ="none";
+        }
+        if (zyra==="") {
+            document.getElementById("edZyraTxtBox").focus();
+            document.getElementById("edZyraTxtBox").style.border = "solid 1px red";
+            numOfErrors++;
+        } else {
+            document.getElementById("edZyraTxtBox").style.border = "none";
+        }
+
+        if (numOfErrors == 0) {
+            var vendodhja = {
+                zyra: zyra,
+                nrKut: nrKut,
+                rafti: rafti
+            }
+            console.log(JSON.stringify(vendodhja));
+            var url = "/Home/editLocation/";
+            $.ajax({
+                url: url,
+                type: "POST",
+                contentType: "application/json",
+                traditional: true,
+                data: JSON.stringify(vendodhja),
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.responseText)
+                    } else {
+                        alert(response.responseText)
+                    }
+                },
+                error: function (response) {
+                    alert(response.error);
+                }
+            });
+        }
+    }
+
+    function addIndex() {
+        var fushaIndex = document.getElementById("edFushaIndexTxtBox").value;
+        var data = {
+            fushaIdx: fushaIndex,
+        };
+
+        var url = "/Home/addIndex/";
+        $.ajax({
+            url: url,
+            type: "POST",
+            contentType: "application/json",
+            traditional: true,
+            data: JSON.stringify(data),
+            success: function (response) {
+                if (response.success) {
+                    alert(response.responseText);
+                    document.getElementById("edFushaIndexTxtBox").value = "";
+                    var p = document.createElement("p");
+                    p.innerHTML = response.data + ";";
+                    p.style = "width:min-content; float:left;";
+                    document.getElementById("fushat").appendChild(p);
+                } else {
+                    alert(response.responseText);
+                }
+            },
+            error: function (response) {
+                alert(response.error);
+            }
+        });
+    }
+
+    function base64ToArrayBuffer(base64) {
+        var binaryString = window.atob(base64);
+        var binaryLen = binaryString.length;
+        var bytes = new Uint8Array(binaryLen);
+        for (var i = 0; i < binaryLen; i++) {
+            var ascii = binaryString.charCodeAt(i);
+            bytes[i] = ascii;
+        }
+        return bytes;
+    }
+
+    function downloadDoc(rawData, type, docName) {
+        var data = base64ToArrayBuffer(rawData);
+        var blob = new Blob([data], { type: type });
+        console.log([data]);
+        console.log(blob);
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = docName;
+        link.click();
+    }
+</script>

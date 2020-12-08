@@ -1,0 +1,649 @@
+﻿@{
+    ViewBag.Title = "FileExplorer";
+    List<string> pathIds = Session["pathIds"] as List<string>;
+    int currentFolderIndex = 0;
+    if (pathIds != null)
+    { currentFolderIndex = pathIds.Count(); }
+}
+@using ArkivaMVCOnly.Models
+
+<input type="checkbox" id="godCheckbox" onchange="d_enableAllCheckboxes()" />
+<span id="root" class="label" onclick="goToRoot()">Fillimi</span>
+@{ List<string> folderPaths;
+    if (Session["folderPath"] != null)
+    {
+        folderPaths = Session["folderPath"] as List<String>;
+    }
+
+    else
+    {
+        folderPaths = new List<string>();
+    }
+    int index = 0;
+    foreach (string folder in folderPaths)
+    {
+        <span id="seperator"> > </span>
+        <span id="@folder" class="label"
+              onclick="changeFolder('@folder', '@index')">
+            @folder
+        </span>
+        index++;
+    }
+}
+<!-- fundi i div te path -->
+
+<div id="folderDiv" class="gridDiv">
+    @{
+        String imgPath = "/Images/FolderIcon.png";
+        List<String> folders = new List<string>();
+        List<String> foldersIds = new List<string>();
+
+        int numOfFolders = 0;
+
+        if (Session["folderType"] != null)
+        {
+            var folderType = (Folder)Session["folderType"];
+
+            if (folderType == Folder.Root)
+            {
+                using (User db = new User())
+                {
+                    var folderNames = (from doc in db.TJ_Dokument
+                                       group doc by doc.emri_subjektit into tempFolders
+                                       select new { tempFolders.Key }).ToList();
+
+                    numOfFolders = folderNames.Count();
+                    foreach (var name in folderNames)
+                    {
+                        folders.Add(name.Key);
+                    }
+                }
+            }
+
+            if (folderType == Folder.Subjekt)
+            {
+                using (User db = new User())
+                {
+                    string folderName = Session["folderName"] as string;
+                    string emSub = folderPaths[0];
+
+                    var folderNames = (from doc in db.TJ_Dokument
+                                       where (doc.emri_subjektit == emSub)
+                                       group doc by doc.nr_inspektimi into tempFolders
+                                       select new { tempFolders.Key }).ToList();
+
+                    numOfFolders = folderNames.Count();
+                    foreach (var name in folderNames)
+                    {
+                        folders.Add(name.Key);
+                    }
+                }
+
+            }
+            else if (folderType == Folder.Inspektim)
+            {
+                using (User db = new User())
+                {
+                    string folderName = Session["folderName"] as string;
+                    string emSub = folderPaths[0];
+                    string nrIns = folderPaths[1];
+
+                    var folderNames = (from doc in db.TJ_Dokument
+                                       where (doc.emri_subjektit == emSub && doc.nr_inspektimi == nrIns)
+                                       group doc by doc.lloji into tempFolders
+                                       select new { tempFolders.Key }).ToList();
+
+                    numOfFolders = folderNames.Count();
+                    foreach (var name in folderNames)
+                    {
+                        folders.Add(name.Key);
+                    }
+                }
+            }
+            else if (folderType == Folder.Lloji)
+            {
+                using (User db = new User())
+                {
+                    string folderName = Session["folderName"] as string;
+                    string emSub = folderPaths[0];
+                    string nrIns = folderPaths[1];
+                    string lloji = folderPaths[2];
+
+
+                    var folderNames = (from doc in db.TJ_Dokument
+                                       where (doc.emri_subjektit == emSub && doc.nr_inspektimi == nrIns && doc.lloji == lloji)
+                                       group doc by new { doc.emri_dokumentit, doc.dokumenti, doc.IDTJ_Dokument } into tempFolders
+                                       select new { tempFolders.Key }).ToList();
+
+                    numOfFolders = folderNames.Count();
+                    imgPath = "/Images/FileIcon.png";
+                    foreach (var name in folderNames)
+                    {
+                        folders.Add(name.Key.emri_dokumentit);
+                        foldersIds.Add(name.Key.IDTJ_Dokument.ToString());
+                    }
+                }
+
+
+            }
+            else if (folderType == Folder.Search)
+            {
+                using (User db = new User())
+                {
+
+                    string folderName = Session["folderName"] as string;
+                    string emSub = Session["emSub"] as string;
+                    string nrIns = Session["nrIns"] as string;
+                    string lloji = Session["lloji"] as string;
+                    string emDok = Session["emDok"] as string;
+                    string fshInd = Session["fshInd"] as string;
+                    string zyra = Session["zyra"] as string;
+                    string nrKut = Session["nrKut"] as string;
+                    string rafti = Session["rafti"] as string;
+                    DateTime dateStart;
+                    string date = Session["dateStart"] as string;
+                    if (!date.IsEmpty())
+                    {
+                        dateStart = DateTime.ParseExact(date, "d/M/yyyy", System.Globalization.CultureInfo.CurrentCulture);
+                    }
+                    else
+                    {
+                        dateStart = DateTime.ParseExact("1/1/1970", "d/M/yyyy", System.Globalization.CultureInfo.CurrentCulture);
+                    }
+
+                    DateTime dateEnd;
+                    date = Session["dateEnd"] as string;
+                    if (!date.IsEmpty())
+                    {
+
+                        dateEnd = DateTime.ParseExact(date, "d/M/yyyy", System.Globalization.CultureInfo.CurrentCulture);
+                    }
+                    else
+                    {
+                        dateEnd = DateTime.ParseExact("31/12/9999", "d/M/yyyy", System.Globalization.CultureInfo.CurrentCulture); ;
+                    }
+
+                    var emratEDok = emDok.Split(';');
+
+                    var folderNames = (from doc in db.TJ_Dokument
+                                       where ((emSub == "" || doc.emri_subjektit == emSub) && (nrIns == "" || doc.nr_inspektimi == nrIns)
+                                       && (lloji == "" || doc.lloji == lloji) && (emDok == "" || emratEDok.Contains(doc.emri_dokumentit))
+                                       && (zyra == "" || doc.vend_zyra == zyra) && (nrKut == "" || doc.vend_nr_kutise == nrKut) && (rafti == "" || doc.vend_rafti == rafti)
+                                       && (dateStart < doc.date_regjistrimi && doc.date_regjistrimi < dateEnd))
+                                       group doc by new { doc.emri_dokumentit, doc.dokumenti, doc.IDTJ_Dokument, doc.fusha_indeksimit } into tempFolders
+                                       select new { tempFolders.Key }).ToList();
+                    if (fshInd == "")
+                    {
+
+
+                        numOfFolders = folderNames.Count();
+                        imgPath = "/Images/FileIcon.png";
+                        foreach (var name in folderNames)
+                        {
+                            folders.Add(name.Key.emri_dokumentit);
+                            foldersIds.Add(name.Key.IDTJ_Dokument.ToString());
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < folderNames.Count(); i++)
+                        {
+                            Boolean remove = false;
+                            foreach (var searchIndex in fshInd.Split(';'))
+                            {
+
+                                if (Array.IndexOf(folderNames[i].Key.fusha_indeksimit.Split(';'), searchIndex) >= 0)
+                                {
+                                    remove = false;
+                                    break;
+                                }
+                                else
+                                {
+                                    remove = true;
+                                }
+                            }
+                            if (remove)
+                            {
+                                folderNames.Remove(folderNames[i]);
+                                i--;
+                            }
+                        }
+
+                        numOfFolders = folderNames.Count();
+                        imgPath = "/Images/FileIcon.png";
+                        foreach (var name in folderNames)
+                        {
+                            folders.Add(name.Key.emri_dokumentit);
+                            foldersIds.Add(name.Key.IDTJ_Dokument.ToString());
+                        }
+                    }
+                }
+            }
+
+        }
+        Dictionary<String, String> folder1Images = new Dictionary<String, String>();
+        if (imgPath.Equals("/Images/FolderIcon.png"))
+        {
+            for (int i = 0; i < numOfFolders; i++)
+            {
+                <div style="align-items: center; display: flex; width: 300px;">
+                    <input type="checkbox" class="folderChB" value="@folders[i]" onchange="enableDeleteButton()" />
+                    <img src="@Url.Content(imgPath)" alt="image" class="gridImages" onclick="changeFolder('@folders[i]', '@currentFolderIndex')" />
+                    <span class="gridLabels">@folders[i]</span>
+                </div>
+            }
+        }
+        else
+        {
+            for (int i = 0; i < numOfFolders; i++)
+            {
+                string emriDoc = folders[i];
+                int indexOfPoint = emriDoc.LastIndexOf('.') + 1;
+                string type = emriDoc.Substring(indexOfPoint, emriDoc.Length - indexOfPoint);
+
+                switch (type)
+                {
+                    case "docx":
+                        imgPath = "/Images/file_document.png";
+                        break;
+                    case "xlsx":
+                        imgPath = "/Images/file_spreadsheet.png";
+                        break;
+                    case "pptx":
+                        imgPath = "/Images/file_presentation.png";
+                        break;
+                    case "doc":
+                        imgPath = "/Images/file_document.png";
+                        break;
+                    case "xls":
+                        imgPath = "/Images/file_spreadsheet.png";
+                        break;
+                    case "ppt":
+                        imgPath = "/Images/file_presentation.png";
+                        break;
+                    case "odt":
+                        imgPath = "/Images/file_document.png";
+                        break;
+                    case "pdf":
+                        imgPath = "/Images/file_pdf.png";
+                        break;
+                    case "jpg":
+                        imgPath = "/Images/file_image.png";
+                        break;
+                    case "png":
+                        imgPath = "/Images/file_image.png";
+                        break;
+
+                }
+
+                <div style="align-items: center; display: flex; width: 300px;">
+                    <input type="checkbox" class="fileChB" value="@foldersIds[i]" onchange="enableDeleteButton()" />
+                    <img src="@Url.Content(imgPath)" alt="image" class="gridImages" onclick="imageClick('@foldersIds[i]')" />
+                    <span class="gridLabels">@folders[i]</span>
+                </div>
+            }
+        }
+
+    }
+</div>
+<!-- fundi i div te folder-ave -->
+
+<script>
+    function enableDeleteButton() {
+        var folderCheckBoxes = document.getElementsByClassName("folderChB");
+        var fileCheckBoxes = document.getElementsByClassName("fileChB");
+        var atLeastOneChecked = false;
+        var atLeastOneFileChecked = false;
+
+        var foldersChecked = 0;
+        for (var i = 0; i < folderCheckBoxes.length; i++) {
+            if (folderCheckBoxes[i].checked) {
+                atLeastOneChecked = true;
+                foldersChecked++;
+            }
+        }
+        var filesChecked = 0;
+        for (var i = 0; i < fileCheckBoxes.length; i++) {
+            if (fileCheckBoxes[i].checked) {
+                atLeastOneChecked = true;
+                atLeastOneFileChecked = true;
+                filesChecked++;
+            }
+        }
+
+        if (atLeastOneChecked) {
+            document.getElementById("deleteBtn").disabled = false;
+            document.getElementById("downloadBtn").disabled = false;
+
+            if (foldersChecked == folderCheckBoxes.length) {
+                document.getElementById("godCheckbox").checked = true;
+            } else {
+                document.getElementById("godCheckbox").checked = false;
+            }
+        } else {
+            document.getElementById("deleteBtn").disabled = true;
+            document.getElementById("downloadBtn").disabled = true;
+        }
+
+        if (atLeastOneFileChecked) {
+            document.getElementById("downloadBtn").disabled = false;
+            if (filesChecked == 1) {
+                document.getElementById("viewBtn").disabled = false;
+            } else {
+                document.getElementById("viewBtn").disabled = true;
+            }
+
+            if (filesChecked == fileCheckBoxes.length) {
+                document.getElementById("godCheckbox").checked = true;
+            } else {
+                document.getElementById("godCheckbox").checked = false;
+            }
+        } else {
+            document.getElementById("viewBtn").disabled = true;
+        }
+    }
+
+    function deleteFromCheckbox() {
+        var folderCheckBoxes = document.getElementsByClassName("folderChB");
+        var fileCheckBoxes = document.getElementsByClassName("fileChB");
+        var checkedFolders = new Array();
+
+        if (folderCheckBoxes.length > 0) {
+            for (const chb of folderCheckBoxes) {
+                if (chb.checked) {
+                    checkedFolders.push(chb.value);
+                }
+            }
+
+            var data = {
+                folderNames: checkedFolders
+            };
+            var url = "/Home/deleteFolder/";
+            $.ajax({
+                url: url,
+                type: "POST",
+                contentType: "application/json",
+                traditional: true,
+                data: JSON.stringify(data),
+                success: function (data, textStatus, jqXHR) {
+                    $("#test").html(data);
+                },
+                error: function (response) {
+                    if (response.status == 401) {
+                        alert("Ju nuk keni te drejta per te fshire nje ose disa dokumente ne kete folder");
+                    }
+                }
+            })
+        } else {
+            for (const chb of fileCheckBoxes) {
+                if (chb.checked) {
+                    checkedFolders.push(chb.value);
+                }
+            }
+
+            var data = {
+                fileIds: checkedFolders
+            };
+            var url = "/Home/deleteFile/";
+            $.ajax({
+                url: url,
+                type: "POST",
+                contentType: "application/json",
+                traditional: true,
+                data: JSON.stringify(data),
+                success: function (data, textStatus, jqXHR) {
+                    $("#test").html(data);
+                },
+                error: function (response) {
+                    if (response.status == 401) {
+                        alert("Ju nuk keni te drejta per te fshire kete dokument");
+                    }
+                }
+            })
+        }
+
+        console.log(checkedFolders);
+    }
+
+    function viewFromCheckbox() {
+        var fileCheckBoxes = document.getElementsByClassName("fileChB");
+
+        for (var i = 0; i < fileCheckBoxes.length; i++) {
+            if (fileCheckBoxes[i].checked) {
+                imageClick(fileCheckBoxes[i].value);
+            }
+        }
+    }
+
+    function changeFolder(folderName, folderId) {
+        var url = "/Home/changeFolder/";
+        $.post(url, { foldername: folderName, folderId: folderId })
+            .done(function (response) {
+                $("#test").html(response);
+            });
+    }
+
+    function goToRoot() {
+        var url = "/Home/goToRoot/";
+        $.post(url, { root: true })
+            .done(function (response) {
+                $("#test").html(response);
+            });
+    }
+
+    function imageClick(id) {
+        var data = {
+            id: id
+        };
+        var url = "/Home/openDocument/";
+        $.ajax({
+            url: url,
+            type: "POST",
+            contentType: "application/json",
+            traditional: true,
+            data: JSON.stringify(data),
+            success: function (data, textStatus, jqXHR) {
+                openViewer();
+                $("#fileViewer").html(data);
+            },
+            error: function (response) {
+                alert(response.error);
+            }
+        })
+    }
+
+    function downloadFromCheckBox() {
+        var checks = document.getElementsByClassName("fileChB");
+        var ids = new Array();
+
+        for (var i = 0; i < checks.length; i++) {
+            if (checks[i].checked) {
+                ids.push(checks[i].value);
+            }
+        }
+
+
+        if (ids.length == 1) {
+            var data = {
+                id: ids[0]
+            };
+
+            var url = "/Home/downloadDocument/";
+            $.ajax({
+                url: url,
+                type: "POST",
+                contentType: "application/json",
+                traditional: true,
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response.success) {
+                        var blob = new Blob([Uint8Array.from(response.fileData)], { type: response.fileType });
+                        console.log(Uint8Array.from(response.fileData));
+                        console.log(blob);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = response.fileName;
+                        link.click();
+                    }
+                },
+                error: function (response) {
+                    alert(response.error);
+                }
+            })
+        }
+        else if (ids.length > 1) {
+
+            var data = {
+                ids: ids
+            };
+
+            var url = "/Home/downloadDocuments/";
+            $.ajax({
+                url: url,
+                type: "POST",
+                contentType: "application/json",
+                traditional: true,
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response.success) {
+                        var blob = new Blob([Uint8Array.from(response.fileData)], { type: response.fileType });
+                        console.log(Uint8Array.from(response.fileData));
+                        console.log(blob);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = response.fileName;
+                        link.click();
+                    }
+                },
+                error: function (response) {
+                    console.log(response);
+                    alert(response.error);
+                    document.write(response.responseText);
+                }
+            })
+        }
+
+
+
+        var checks = document.getElementsByClassName("folderChB");
+        ids = new Array();
+
+        for (var i = 0; i < checks.length; i++) {
+            if (checks[i].checked) {
+                ids.push(checks[i].value);
+            }
+        }
+
+        if (ids.length > 0) {
+            var data = {
+                folders: ids
+            };
+
+            var url = "/Home/downloadDocumentsFromFolder/";
+            $.ajax({
+                url: url,
+                type: "POST",
+                contentType: "application/json",
+                traditional: true,
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response.success) {
+                        var blob = new Blob([Uint8Array.from(response.fileData)], { type: response.fileType });
+                        console.log(Uint8Array.from(response.fileData));
+                        console.log(blob);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = response.fileName;
+                        link.click();
+                    }
+                },
+                error: function (response) {
+                    console.log(response);
+                    alert(response.error);
+                    document.write(response.responseText);
+                }
+            })
+        }
+
+    }
+
+    function d_enableAllCheckboxes() {
+        var folderCheckBoxes = document.getElementsByClassName("folderChB");
+        var fileCheckBoxes = document.getElementsByClassName("fileChB");
+        var atLeastOneChecked = false;
+
+        for (var i = 0; i < folderCheckBoxes.length; i++) {
+            if (folderCheckBoxes[i].checked) {
+                atLeastOneChecked = true;
+            }
+        }
+        for (var i = 0; i < fileCheckBoxes.length; i++) {
+            if (fileCheckBoxes[i].checked) {
+                atLeastOneChecked = true;
+            }
+        }
+
+        var godCheckbox = document.getElementById("godCheckbox");
+
+        if (atLeastOneChecked) {
+            godCheckbox.checked = false;
+            for (var i = 0; i < folderCheckBoxes.length; i++) {
+                folderCheckBoxes[i].checked = false;
+            }
+            for (var i = 0; i < fileCheckBoxes.length; i++) {
+                fileCheckBoxes[i].checked = false;
+            }
+
+            document.getElementById("deleteBtn").disabled = true;
+            if (fileCheckBoxes.length > 0) {
+                document.getElementById("viewBtn").disabled = true;
+                document.getElementById("downloadBtn").disabled = true;
+            }
+
+        } else if (godCheckbox.checked) {
+            for (var i = 0; i < folderCheckBoxes.length; i++) {
+                folderCheckBoxes[i].checked = true;
+            }
+            for (var i = 0; i < fileCheckBoxes.length; i++) {
+                fileCheckBoxes[i].checked = true;
+            }
+
+            document.getElementById("deleteBtn").disabled = false;
+            if (fileCheckBoxes.length > 0) {
+                document.getElementById("viewBtn").disabled = false;
+                document.getElementById("downloadBtn").disabled = false;
+            }
+        }
+    }
+
+
+    function enableAddButton() {
+        document.getElementById("addBtn").disabled = false;
+    }
+    function disableAddButton() {
+        document.getElementById("addBtn").disabled = true;
+    }
+    $(document).ready(
+        @if (Session["folderType"] != null)
+        {
+            Folder folderType = (Folder)Session["folderType"];
+
+            switch (folderType)
+            {
+                case Folder.Root:
+                case Folder.Subjekt:
+                case Folder.Search:
+                    @:disableAddButton
+                    break;
+                case Folder.Inspektim:
+                case Folder.Lloji:
+                    @:enableAddButton
+                    break;
+                default:
+                    @:disableAddButton
+                    break;
+            }
+        }
+    );
+
+</script>

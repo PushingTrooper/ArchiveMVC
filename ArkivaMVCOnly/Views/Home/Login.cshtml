@@ -1,0 +1,70 @@
+﻿
+@model ArkivaMVCOnly.TJ_Users
+
+@{
+    ViewBag.Title = "Login";
+}
+
+@using (Html.BeginForm("Login", "Home", FormMethod.Post))
+{
+    <style>
+        .opt-btn {
+            border-color: #269BF4 !important;
+            color: white !important;
+            background-color: #269BF4 !important;
+            margin-right: 10px;
+        }
+
+            .opt-btn:hover {
+                border-color: #269BF4 !important;
+                color: #269BF4 !important;
+                background-color: white !important;
+            }
+    </style>
+    <fieldset>
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true)
+        @if (@ViewBag.Message != null)
+        {
+            <div style="border: 1px solid red">
+                @ViewBag.Message
+            </div>
+        }
+
+            <div class="row px-4 align-items-center" style="margin-top: 15px;">
+                <!-- BEGIN: Username -->
+                <div class="col-sm-12">
+                    <div class="form-group mb-1 row align-items-left">
+                        <label class="col-sm-8 ealb-sm-form-text ealb-sm-form-input col-form-label col-form-label-sm text-md-left lbl" for="username">Përdoruesi</label>
+                        <div class="col-sm-12 pl-0 pr-0-mob">
+                            @Html.TextBoxFor(a => a.username, new { Class = "form-control form-control-sm ealb-sm-form-input" })
+                            @Html.ValidationMessageFor(a => a.username)
+                        </div>
+                    </div>
+                </div>
+                <!-- END: Username -->
+                <!-- BEGIN: Password -->
+                <div class="col-sm-12">
+                    <div class="form-group mb-1 row align-items-left">
+                        <label class="col-sm-8 ealb-sm-form-text ealb-sm-form-input col-form-label col-form-label-sm text-md-left lbl" for="password">Fjalëkalimi</label>
+                        <div class="col-sm-12 pl-0 pr-0-mob">
+                            @Html.PasswordFor(a => a.password, new { Class = "form-control form-control-sm ealb-sm-form-input" })
+                            @Html.ValidationMessageFor(a => a.password)
+                        </div>
+                    </div>
+                </div>
+                <!-- END: Password -->
+                @if (Session["DbError"] != null)
+                {
+                    <p style="color: red; margin-left: 15px;">@Session["DbError"]</p>
+                }
+                <input type="submit" value="Hyr"
+                       class="btn btn-sm opt-btn mb-1"
+                       style="height:30px; width:75px; margin-left: 16px;" />
+                <input type="button" value="Regjistrohu"
+                       class="btn btn-sm opt-btn mb-1"
+                       style="height:30px; width:87px;"
+                       onclick="parent.location='@Url.Action("Register", "Home")'" />
+            </div>
+    </fieldset>
+}

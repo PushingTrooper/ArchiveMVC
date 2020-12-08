@@ -1,0 +1,354 @@
+﻿
+@{
+    ViewBag.Title = "AddPopup";
+    string subjekt = "";
+    string inspektim = "";
+}
+
+<style>
+    /* Full-width input fields */
+    .form-container input[type=text], .form-container input[type=password] {
+        width: 100%;
+        padding: 15px;
+        margin: 5px 0 0px 0;
+        border: 1px solid #ccc;
+        background: white;
+    }
+
+        /* When the inputs get focus, do something */
+        .form-container input[type=text]:focus, .form-container input[type=password]:focus {
+            background-color: #ddd;
+            outline: none;
+        }
+</style>
+
+<form id="popUp" class="form-container">
+    <div class="row px-4 align-items-center" style="margin-top: 15px; border-bottom: 1px black;">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-left">
+                <div class="col-sm-12 pl-0 pr-0-mob" style="border-bottom: 1px solid black; width: 97.5%; left: 5px;">
+                    <h3 class="col-sm-12" style="margin-top: 6px;">Ngarkoni Dokumenta</h3>
+                    <input type="button" class="submit clear" title="Hiq tabelen" onclick="closeForm()"
+                           style="margin-left: 36px; margin-top: 5px; position:absolute; right: 0; border:none;" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row px-4 align-items-center">
+        <!-- BEGIN: Lloj dokumenti -->
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-left">
+                <label class="col-sm-8 ealb-sm-form-text ealb-sm-form-input col-form-label col-form-label-sm text-md-left lbl required-name">Lloj dokumenti</label>
+                <div class="col-sm-12 pl-0 pr-0-mob">
+                    <div class="col-sm-12 pl-0 pr-0-mob">
+                        <select id="puLlojDokumentiSelect" class="form-control form-control-sm ealb-sm-form-input" style="margin-top: 4px; margin-left: -16px;">
+                            <option value="lloj_dokumenti">Checklist</option>
+                            <option value="lloj_dokumenti">Raport</option>
+                            <option value="lloj_dokumenti">Procesverbal</option>
+                        </select>
+                    </div>
+                    <input id='fileUpload' type='file' style="display: none;" name="uploadedDocument" multiple />
+                    <input type="button" class="submit upload"
+                           title="Ngarko" value="Ngarko"
+                           onclick="openFileExplorer()"
+                           style="margin-left: 36px; margin-top: 5px; width: 90px; position:absolute; right: 0;" />
+                </div>
+            </div>
+        </div>
+        <!-- END: Lloj dokumenti -->
+    </div>
+    <!-- BEGIN: Fusha indeksimit -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-right">
+                <label class="col-sm-8 ealb-sm-form-text col-form-label col-form-label-sm text-md-left lbl required-name">Fusha indeksimit</label>
+                <div class="col-sm-12 pl-0 pr-0-mob">
+                    <input id="puFushaIndexTxtBox" type="text" class="form-control form-control-sm ealb-sm-form-input col-sm-12" maxlength="10"  />
+                    <input type="button" class="submit add" onclick="shtoFusheIndeksimi()" title="Shto" style="margin-left: 36px; margin-top: 5px; position:absolute; right: 0;" />
+                </div>
+                <div id="fushatDiv" class="col-sm-12 pl-0 pr-0-mob">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END: Fusha indeksimit -->
+    <div class="row">
+        <!-- BEGIN: Vendodhja fizike e dokumentit-->
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-right">
+                <label for="puZyraTxtBox" class="col-sm-12 ealb-sm-form-text col-form-label col-form-label-sm text-md-left lbl">Vendodhja fizike e dokumentit</label>
+                <div class="col-sm-4 pl-0 pr-0-mob" style="padding-right: 0px;">
+                    <input type="text" id="puZyraTxtBox" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Zyra"/>
+                </div>
+                <div class="col-sm-4 pl-0 pr-0-mob" style="padding-right: 0px;">
+                    <input type="text" id="puNrKutiseTxtBox" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Nr i kutisë" />
+                </div>
+                <div class="col-sm-4 pl-0 pr-0-mob">
+                    <input type="text" id="puRaftiTxtBox" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Rafti" />
+                </div>
+            </div>
+        </div>
+        <!-- END: Vendodhja fizike e dokumentit -->
+    </div>
+    <div id="labels">
+
+    </div>
+    <button id="btnRuaj"
+            onclick="return saveFiles()"
+            class="btn btn-sm sv-btn mb-1"
+            style="height: 30px;
+            width: 75px;
+            padding: 0px 0px;
+            position: relative;
+            left: 39%;
+            border: 1px solid transparent;">
+        Ruaj
+    </button>
+</form>
+<style>
+    .fileLabel {
+        font-weight: initial;
+        font-size: 12px;
+    }
+</style>
+<script>
+    var docInput = document.getElementById("fileUpload");
+    var divLabels = document.getElementById("labels");
+    var latestDiv;
+    var fileData;
+    var indxId = 0;
+    var fileId = 0;
+
+    document.getElementById("fileUpload").onchange = function () {
+        addFileToList();
+    }
+
+    function shtoFusheIndeksimi() {
+        if (document.getElementById("puFushaIndexTxtBox").value === "") {
+            document.getElementById("puFushaIndexTxtBox").focus();
+            document.getElementById("puFushaIndexTxtBox").style.border = "solid 1px red";
+        } else {
+            document.getElementById("puFushaIndexTxtBox").style.border = "1px solid #ccc";
+
+            var div = document.createElement("div");
+            div.classList += "col-sm-12";
+            var p = document.createElement("p");
+            p.innerHTML = document.getElementById("puFushaIndexTxtBox").value;
+            p.classList += "fushat col-sm-11";
+            var currentId = indxId;
+
+            var img = document.createElement("img");
+            img.src = "/Images/clear-red-18dp.svg";
+            img.onclick = function () { removeFromId(currentId) };
+
+            div.appendChild(p);
+            div.appendChild(img);
+            div.id = indxId;
+            document.getElementById("fushatDiv").appendChild(div);
+            document.getElementById("puFushaIndexTxtBox").value = "";
+            indxId++;
+        }
+        
+    }
+
+    function removeFromId(id) {
+        document.getElementById(id).remove();
+    }
+
+    function readfile(file, currentId) {
+        // Pass the file to the blob, not the input[0].
+        fileData = new Blob([file]);
+        // Pass getBuffer to promise.
+        var promise = new Promise(getBuffer);
+        // Wait for promise to be resolved, or log error.
+        promise.then(function (data) {
+
+            saveFileData(data, currentId);
+            saveFileLloj(currentId);
+            saveFileFushaIndex(currentId);
+            saveFilePlace(currentId);
+
+            console.log(data);
+        }).catch(function (err) {
+            console.log('Error: ', err);
+        });
+    }
+
+    function cleanUp() {
+        var form = document.getElementById('popUp');
+        var inputs = form.getElementsByClassName("form-control");
+        for (var i = 0; i < inputs.length; i++) {
+            if (inputs[i].id == "puLlojDokumentiSelect")
+                inputs[i].selectedIndex = 0;
+            else
+                inputs[i].value = "";
+        }
+    }
+
+    function saveFileData(data, currentId) {
+        var newLabel = document.createElement("label");
+        newLabel.className += "fileData";
+        newLabel.hidden = true;
+        newLabel.innerHTML = data;
+        document.getElementById("file" + currentId).appendChild(newLabel);
+    }
+
+    function saveFileLloj(currentId) {
+        var newLabel = document.createElement("label");
+        newLabel.className += "fileLloj";
+        newLabel.hidden = true;
+        var e = document.getElementById("puLlojDokumentiSelect");
+        //Merr value nga lloji
+        newLabel.innerHTML = e.options[e.selectedIndex].textContent;
+        document.getElementById("file" + currentId).appendChild(newLabel);
+    }
+
+    function saveFileFushaIndex(currentId) {
+        var newLabel = document.createElement("label");
+        newLabel.className += "fileFushaIndex";
+        newLabel.hidden = true;
+        var fushat = document.getElementsByClassName("fushat");
+
+        for (var i = 0; i < fushat.length; i++) {
+            newLabel.innerHTML += (fushat[i].innerHTML+";");
+        }
+        document.getElementById("file" + currentId).appendChild(newLabel);
+    }
+
+    function saveFilePlace(currentId) {
+        var newLabel = document.createElement("label");
+        newLabel.className += "fileZyra";
+        newLabel.hidden = true;
+        newLabel.innerHTML = document.getElementById("puZyraTxtBox").value;
+        document.getElementById("file" + currentId).appendChild(newLabel);
+
+        var newLabel = document.createElement("label");
+        newLabel.className += "fileNrKut";
+        newLabel.hidden = true;
+        newLabel.innerHTML = document.getElementById("puNrKutiseTxtBox").value;
+        document.getElementById("file" + currentId).appendChild(newLabel);
+
+        var newLabel = document.createElement("label");
+        newLabel.className += "fileRafti";
+        newLabel.hidden = true;
+        newLabel.innerHTML = document.getElementById("puRaftiTxtBox").value;
+        document.getElementById("file" + currentId).appendChild(newLabel);
+    }
+
+    function getBuffer(resolve) {
+        var reader = new FileReader();
+        reader.readAsArrayBuffer(fileData);
+        reader.onload = function () {
+            var arrayBuffer = reader.result
+            var bytes = new Uint8Array(arrayBuffer);
+            var base64 = btoa(uint8ToString(bytes));
+            resolve(base64);
+        }
+    }
+
+    function uint8ToString(buf) {
+        var i, length, out = '';
+        for (i = 0, length = buf.length; i < length; i += 1) {
+            out += String.fromCharCode(buf[i]);
+        }
+        return out;
+    }
+
+    function addFileToList() {
+        for (var i = 0; i < docInput.files.length; i++) {
+            latestDiv = document.createElement('div');
+            latestDiv.classList += "col-sm-12";
+
+            var newLabel = document.createElement("label");
+            newLabel.className += "fileLabel col-sm-11";
+            newLabel.innerHTML = docInput.files[i].name;
+            var currentId = fileId;
+            latestDiv.id = "file" + currentId;
+
+            var img = document.createElement("img");
+            img.src = "/Images/clear-red-18dp.svg";
+            img.onclick = function () { removeFromId("file" + currentId) };
+
+            latestDiv.appendChild(newLabel);
+            latestDiv.appendChild(img);
+
+            divLabels.appendChild(latestDiv);
+            fileId++;
+            readfile(docInput.files[i], currentId);
+        }
+
+        docInput.value = "";
+    }
+
+    function saveFiles() {
+        var docNames = document.getElementsByClassName("fileLabel");
+        var llojet = document.getElementsByClassName("fileLloj");
+        var fushatIndex = document.getElementsByClassName("fileFushaIndex");
+        var zyrat = document.getElementsByClassName("fileZyra");
+        var nrKutive = document.getElementsByClassName("fileNrKut");
+        var raftet = document.getElementsByClassName("fileRafti");
+        var data = document.getElementsByClassName("fileData");
+        var jsonDocs = [];
+
+        if (docNames.length > 0) {
+            for (i = 0; i < docNames.length; i++) {
+                var currentDocument = new Dokument(docNames[i].innerHTML,
+                    llojet[i].innerHTML, fushatIndex[i].innerHTML,
+                    zyrat[i].innerHTML, nrKutive[i].innerHTML,
+                    raftet[i].innerHTML, data[i].innerHTML)
+                jsonDocs.push(JSON.stringify(currentDocument));
+            }
+            console.log(jsonDocs);
+
+            var docsPath = [1];
+            docsPath.length = 0;
+
+            for (i = 0; i < docNames.length; i++) {
+                docsPath.push(docNames[i].innerHTML);
+            }
+            console.log(docsPath);
+
+            saveFilesInDb(jsonDocs);
+        } else {
+            alert("Ju lutem ngarkoni të paktën një dokument");
+        }
+        
+        return false;
+    }
+
+    function saveFilesInDb(docs) {
+        var url = "/Home/saveFiles/";
+        $.ajax({
+            url: url,
+            type: "POST",
+            contentType: "application/json",
+            traditional: true,
+            data: JSON.stringify(docs),
+            success: function (response) {
+                if (response.success) {
+                    closeForm();
+                    location.reload();
+                }
+                else
+                    alert(response.responseText);
+            },
+            error: function (response) {
+                alert(response.error);
+            }
+        })
+    }
+
+    class Dokument {
+        constructor(emer, lloji, fushaIndeksimit, zyra, nrKutise, rafti, data) {
+            this.emri_dokumentit = emer;
+            this.lloji = lloji;
+            this.fusha_indeksimit = fushaIndeksimit;
+            this.vend_zyra = zyra;
+            this.vend_nr_kutise = nrKutise;
+            this.vend_rafti = rafti;
+            var today = new Date();
+            this.date_regjistrimi = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear();
+            this.dokumenti = data;
+        }
+    }
+</script>

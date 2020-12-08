@@ -1,0 +1,559 @@
+﻿@{
+    ViewBag.Title = "Arkiva";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+<style>
+    .required-name:after {
+        content: " *";
+        color: red;
+        font-size: 15px;
+    }
+
+    label {
+        display: inline-block;
+        max-width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .search {
+        background: url(/Images/calendar.svg) no-repeat;
+        padding-left: 18px;
+        border: 1px solid #ccc;
+    }
+
+    .gridImages {
+        padding-right: 10px;
+        padding-bottom: 10px;
+        width: 35%;
+    }
+
+    .gridLabels {
+        /*padding-right: 10px;*/
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60%;
+        padding-left: 10px;
+        /*display: inline-block;
+            position: relative;
+            top: -4%;*/
+    }
+
+    .container {
+        width: 90%;
+    }
+
+    footer {
+        float: left;
+    }
+
+    .srch-btn {
+        border-color: #269BF4 !important;
+        color: white !important;
+        background-color: #269BF4 !important;
+    }
+
+    .cln-btn {
+        border-color: #269BF4 !important;
+        color: #269BF4 !important;
+        background-color: white !important;
+    }
+
+    .opt-btn {
+        border-color: #269BF4 !important;
+        color: white !important;
+        background-color: #269BF4 !important;
+        margin-right: 10px;
+    }
+
+        .opt-btn:hover {
+            border-color: #269BF4 !important;
+            color: #269BF4 !important;
+            background-color: white !important;
+        }
+
+    .sv-btn {
+        border-color: #1DDA9A !important;
+        color: white !important;
+        background-color: #1DDA9A !important;
+        margin-right: 10px;
+    }
+
+        .sv-btn:hover {
+            border-color: #1DDA9A !important;
+            color: #1DDA9A !important;
+            background-color: white !important;
+        }
+
+    .submit {
+        border: 1px solid #269BF4;
+        border-radius: 5px;
+        color: white;
+        padding: 5px 0px 5px 25px;
+        width: 40px;
+        height: 30px;
+        margin-right: 10px;
+    }
+
+        .submit:disabled {
+            opacity: 0.5;
+        }
+
+    .add {
+        background: url('/Images/add-white-18dp.svg') center no-repeat #269BF4;
+    }
+
+        .add:hover {
+            background: url('/Images/add-with-a-weird-color-18dp.svg') center no-repeat white;
+        }
+
+    .clear {
+        background: url('/Images/clear-grey-18dp.svg') center no-repeat transparent;
+    }
+
+    .visibility {
+        background: url('/Images/visibility-white-18dp.svg') center no-repeat #269BF4;
+    }
+
+        .visibility:hover {
+            background: url('/Images/visibility-with-a-weird-color-18dp.svg') center no-repeat white;
+        }
+
+    .delete {
+        background: url('/Images/delete-white-18dp.svg') center no-repeat #269BF4;
+    }
+
+        .delete:hover {
+            background: url('/Images/delete-with-a-weird-color-18dp.svg') center no-repeat white;
+        }
+
+    .save {
+        background: url('/Images/save_alt-white-24dp.svg') center no-repeat #269BF4;
+    }
+
+        .save:hover {
+            background: url('/Images/save_alt-with-a-weird-color-24dp.svg') center no-repeat white;
+        }
+
+    .upload {
+        background: url('/Images/publish-white-18dp.svg') 5px 5px no-repeat #269BF4;
+        color: white;
+    }
+
+        .upload:hover {
+            background: url('/Images/publish-with-a-weird-color-18dp.svg') 5px 5px no-repeat white;
+            color: #269BF4;
+        }
+
+    .gridDiv {
+        float: inline-end;
+        width: 74%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 10px;
+        grid-auto-rows: 120px;
+        grid-column-gap: 0px;
+    }
+
+    span.label {
+        cursor: pointer;
+        color: #269BF4;
+        font-size: 16px;
+    }
+
+    .inputWithIcon {
+        position: relative;
+    }
+
+        .inputWithIcon img {
+            position: absolute;
+            right: -1px;
+            top: 3px;
+            padding: 3px 4px;
+            width: 27px;
+        }
+
+    .ui-datepicker-header {
+        background: #269BF4;
+    }
+
+    .ui-datepicker-title {
+        color: white;
+    }
+
+    .ui-datepicker-prev .ui-icon {
+        background: url("/Images/keyboard_arrow_left-white-18dp.svg");
+    }
+
+    .ui-datepicker-prev:hover, .ui-datepicker-next:hover {
+        background: #9ed2fa;
+        border-color: #9ed2fa;
+    }
+
+    .ui-datepicker-next .ui-icon {
+        background: url("/Images/keyboard_arrow_right-white-18dp.svg");
+    }
+
+    .ui-datepicker-calendar .ui-state-default {
+        background: #cfe9fc;
+        border-color: #cfe9fc;
+        border-radius: 3px;
+    }
+
+    .ui-datepicker-calendar .ui-state-active {
+        background: #0964aa;
+        color: white;
+        border-radius: 3px;
+    }
+
+    /* Button used to open the contact form - fixed at the bottom of the page */
+    .open-button {
+        background-color: #555;
+        color: white;
+        padding: 16px 20px;
+        border: none;
+        cursor: pointer;
+        opacity: 0.8;
+        position: fixed;
+        bottom: 23px;
+        right: 28px;
+        width: 280px;
+    }
+
+    /* The popup form - hidden by default */
+    .form-popup {
+        display: none;
+        z-index: 9;
+        background: rgba(102, 102, 102, 0.5);
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    /* Add styles to the form container */
+    .form-container {
+        max-width: 420px;
+        padding: 10px;
+        background-color: white;
+        position: absolute;
+        top: 8%;
+        left: 35%;
+        border-radius: 10px;
+    }
+
+        /* Full-width input fields */
+        .form-container input[type=text], .form-container input[type=password] {
+            width: 100%;
+            padding: 15px;
+            margin: 5px 0 22px 0;
+            border: none;
+            background: #f1f1f1;
+        }
+
+            /* When the inputs get focus, do something */
+            .form-container input[type=text]:focus, .form-container input[type=password]:focus {
+                background-color: #ddd;
+                outline: none;
+            }
+
+        /* Set a style for the submit/login button */
+        .form-container .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 16px 20px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        /* Add a red background color to the cancel button */
+        .form-container .cancel {
+            background-color: red;
+        }
+
+        /* Add some hover effects to buttons */
+        .form-container .btn:hover, .open-button:hover {
+            opacity: 1;
+        }
+</style>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/jquery-ui.min.js"></script>
+<script src="https://code.jquery.com/jquery-migrate-1.0.0.js"></script>
+<script src="~/Scripts/datepicker-sq.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $.datepicker.setDefaults($.datepicker.regional['sq']);
+
+        $('#txtStartDate').datepicker({
+            dateFormat: "dd/mm/yy",
+            showOn: "button",
+            buttonImage: "/Images/fa/regular/calendar-alt.svg",
+            buttonImageOnly: true,
+        });
+        $('#txtEndDate').datepicker({
+            dateFormat: "dd/mm/yy",
+            showOn: "button",
+            buttonImage: "/Images/fa/regular/calendar-alt.svg",
+            buttonImageOnly: true,
+        });
+    });
+
+    function openForm() {
+        document.getElementById("myForm").style.display = "block";
+    }
+
+    function closeForm() {
+        document.getElementById("myForm").style.display = "none";
+        var doclabels = document.getElementById("labels");
+        doclabels.innerHTML = "";
+    }
+
+    function openViewer() {
+        document.getElementById("fileViewer").style.display = "block";
+    }
+
+    function closeViewer() {
+        document.getElementById("fileViewer").style.display = "none";
+    }
+</script>
+
+<br />
+<div class="form-popup" id="myForm">
+    @RenderPage("~/Views/Home/AddPopup.cshtml")
+</div>
+<div class="form-popup" id="fileViewer" style="min-height: 100%; overflow: hidden;">
+    @RenderPage("~/Views/Home/FileViewer.cshtml")
+</div>
+<fieldset class="col-sm-4" style="padding-bottom: 20px; width: 23%; margin-left: 50px;">
+    <input type="button" id="addBtn" class="submit add" title="Shto" onclick="openForm()" disabled />
+    <input type="button" id="viewBtn" class="submit visibility" title="Shiko" onclick="viewFromCheckbox()" disabled />
+    <input type="button" id="deleteBtn" class="submit delete" title="Fshi" onclick="deleteFromCheckbox()" disabled />
+    <input type="button" id="downloadBtn" class="submit save" title="Shkarko" onclick="downloadFromCheckBox()" disabled />
+
+    <!-- BEGIN: Subjekti -->
+    <div class="row px-4 align-items-center" style="margin-top: 15px;">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-left">
+                <label class="col-sm-8 ealb-sm-form-text ealb-sm-form-input col-form-label col-form-label-sm text-md-left lbl">Subjekti</label>
+                <div class="col-sm-12 pl-0 pr-0-mob">
+                    <input id="emSub" type="text" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Subjekt" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END: Subjekti -->
+    <!-- BEGIN: Numër inspektimi -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-right" style="margin-top: 5px;">
+                <label class="col-sm-8 ealb-sm-form-text col-form-label col-form-label-sm text-md-left lbl">Numër inspektimi</label>
+                <div class="col-sm-12 pl-0 pr-0-mob">
+                    <input id="nrIns" type="text" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Inspektim" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END: Numër inspektimi -->
+    <!-- BEGIN: Lloj dokumenti -->
+    <div class="row px-4 align-items-center">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-left">
+                <label class="col-sm-8 ealb-sm-form-text ealb-sm-form-input col-form-label col-form-label-sm text-md-left lbl">Lloj dokumenti</label>
+                <div class="col-sm-12 pl-0 pr-0-mob">
+                    <select id="lloji" class="form-control form-control-sm ealb-sm-form-input">
+                        <option value="lloj_dokumenti">Checklist</option>
+                        <option value="lloj_dokumenti">Raport</option>
+                        <option value="lloj_dokumenti">Procesverbal</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END: Lloj dokumenti -->
+    <!-- BEGIN: Emer dokumenti -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-right" style="margin-top: 5px;">
+                <label class="col-sm-8 ealb-sm-form-text col-form-label col-form-label-sm text-md-left lbl">Emër dokumenti</label>
+                <div class="col-sm-12 pl-0 pr-0-mob">
+                    <input id="emDok" type="text" class="form-control form-control-sm ealb-sm-form-input"  placeholder="emer_dokumenti" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END: Emer dokumenti -->
+    <!-- BEGIN: Fusha indeksimi -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-right" style="margin-top: 5px;">
+                <label class="col-sm-8 ealb-sm-form-text col-form-label col-form-label-sm text-md-left lbl">Fusha indeksimi</label>
+                <div class="col-sm-12 pl-0 pr-0-mob">
+                    <input id="fshInd" type="text" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="fusha;indeksimi" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END: Fusha indeksimi -->
+    <!-- BEGIN: Vendodhja fizike e dokumentit-->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-right" style="margin-top: 5px;">
+                <label class="col-sm-12 ealb-sm-form-text col-form-label col-form-label-sm text-md-left lbl">Vendodhja fizike e dokumentit</label>
+                <div class="col-sm-3 pl-0 pr-0-mob" style="padding-right: 0px;">
+                    <input id="zyra" type="text" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Zyra" />
+                </div>
+                <div class="col-sm-4 pl-0 pr-0-mob" style="padding-right: 0px;">
+                    <input id="nrKut" type="text" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Nr i kutisë" />
+                </div>
+                <div class="col-sm-2 pl-0 pr-0-mob" style="padding-right: 0px;">
+                    <input id="rafti" type="text" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="Rafti" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END: Vendodhja fizike e dokumentit -->
+    <!-- BEGIN: Data e regjistrimit të dokumentit -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group mb-1 row align-items-right" style="margin-top: 5px;">
+                <label class="col-sm-12 ealb-sm-form-text col-form-label col-form-label-sm text-md-left lbl">Data e regjistrimit të dokumentit</label>
+                <div class="col-sm-4 pl-0 pr-0-mob inputWithIcon" style="padding-right: 0px;">
+                    <input id="txtStartDate" type="text" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="dd/mm/yyyy" />
+                </div>
+                <p class="col-sm-1" style="padding-left:20px; padding-right:0px;">-</p>
+                <div class="col-sm-4 pl-0 pr-0-mob inputWithIcon" style="padding-right: 0px;">
+                    <input id="txtEndDate" type="text" class="form-control form-control-sm ealb-sm-form-input" maxlength="10"  placeholder="dd/mm/yyyy" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END: Data e regjistrimit të dokumentit -->
+    <div>
+        <button id="btnKerko"
+                onclick="search()"
+                class="btn btn-sm opt-btn mb-1"
+                style="height:30px; width:75px; position: absolute; left:17%">
+            Kërko
+        </button>
+        <button id="btnPastro"
+                onclick="clearFields()"
+                class="btn btn-sm cln-btn mb-1"
+                style="height:30px; width:75px; position: absolute; left:40%">
+            Pastro
+        </button>
+    </div>
+    <!-- fundi i div-it te butonave te formes se kerkimit -->
+
+</fieldset>
+<!-- fundi i fieldset te kerkimit -->
+<div id="test" style="display: ruby-text">
+    @RenderPage("~/Views/Home/FileExplorer.cshtml")
+</div>
+<!-- fundi i div te FileExplorer -->
+
+<script>
+    function search() {
+        var url = "/Home/search/";
+        var emSub = document.getElementById("emSub").value;
+        var nrIns = document.getElementById("nrIns").value;
+        var llojiField = document.getElementById("lloji");
+        var lloji = llojiField.options[llojiField.selectedIndex].textContent;
+        var emDok = document.getElementById("emDok").value;
+        var fshInd = document.getElementById("fshInd").value;
+        var zyra = document.getElementById("zyra").value;
+        var nrKut = document.getElementById("nrKut").value;
+        var rafti = document.getElementById("rafti").value;
+        var dateStart = document.getElementById("txtStartDate").value;
+        var dateEnd = document.getElementById("txtEndDate").value;
+
+        $.post(url, {
+            emSub: emSub, nrIns: nrIns, lloji: lloji,
+            emDok: emDok, fshInd: fshInd, zyra: zyra,
+            nrKut: nrKut, rafti: rafti, dateStart: dateStart, dateEnd: dateEnd
+        })
+            .done(function (response) {
+                $("#test").html(response);
+            });
+        };
+
+    function clearFields() {
+        var emSub = document.getElementById("emSub");
+        var nrIns = document.getElementById("nrIns");
+        var llojiField = document.getElementById("lloji");
+        var emDok = document.getElementById("emDok");
+        var fshInd = document.getElementById("fshInd");
+        var zyra = document.getElementById("zyra");
+        var nrKut = document.getElementById("nrKut");
+        var rafti = document.getElementById("rafti");
+        var dateStart = document.getElementById("txtStartDate");
+        var dateEnd = document.getElementById("txtEndDate");
+
+        emSub.value = "";
+        nrIns.value = "";
+        llojiField.selectedIndex = 0;
+        emDok.value = "";
+        fshInd.value = "";
+        zyra.value = "";
+        nrKut.value = "";
+        rafti.value = "";
+        dateStart.value = "";
+        dateEnd.value = "";
+        };
+
+    function openFileExplorer() {
+        var fusha = document.getElementsByClassName("fushat");
+        var zyra = document.getElementById("puZyraTxtBox").value;
+        var nrKut = document.getElementById("puNrKutiseTxtBox").value;
+        var rafti = document.getElementById("puRaftiTxtBox").value;
+
+        var numOfErrors = 0;
+
+        if (fusha.length == 0) {
+            alert("Ju lutem shtoni të pakten një fushë indeksimi");
+        } else if (zyra === "") {
+            alert("Ju lutem plotësoni fushën e zyrës");
+        } else if(nrKut === ""){
+            alert("Ju lutem plotësoni fushën e numrit të kutisë");
+        } else if (rafti === "") {
+            alert("Ju lutem plotësoni fushën e rafit");
+        }
+
+        if (rafti === "") {
+            document.getElementById("puRaftiTxtBox").focus();
+            document.getElementById("puRaftiTxtBox").style.border = "solid 1px red";
+            numOfErrors++;
+        } else {
+            document.getElementById("puRaftiTxtBox").style.border = "solid 1px #ccc";
+        }
+        if (nrKut === "") {
+            document.getElementById("puNrKutiseTxtBox").focus();
+            document.getElementById("puNrKutiseTxtBox").style.border = "solid 1px red";
+            numOfErrors++;
+        } else {
+            document.getElementById("puNrKutiseTxtBox").style.border = "solid 1px #ccc";
+        }
+        if (zyra === "") {
+            document.getElementById("puZyraTxtBox").focus();
+            document.getElementById("puZyraTxtBox").style.border = "solid 1px red";
+            numOfErrors++;
+        } else {
+            document.getElementById("puZyraTxtBox").style.border = "solid 1px #ccc";
+        }
+        if (fusha.length == 0) {
+            document.getElementById("puFushaIndexTxtBox").focus();
+            document.getElementById("puFushaIndexTxtBox").style.border = "solid 1px red";
+            numOfErrors++;
+        } else {
+            document.getElementById("puFushaIndexTxtBox").style.border = "solid 1px #ccc";
+        }
+
+        if (numOfErrors == 0) {
+            $('#fileUpload').click();
+        }
+        };
+</script>

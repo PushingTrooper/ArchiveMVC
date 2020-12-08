@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - My ASP.NET Application</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+    <style>
+        .navbar {
+            background-color: #269BF4;
+        }
+
+        .navbar-inverse .navbar-brand {
+            color: antiquewhite;
+            border-color: #269BF4;
+        }
+
+        .loginLabel{
+            color: antiquewhite;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                @Html.ActionLink("Arkiva", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    @*<li>@Html.ActionLink("Home", "Index", "Home")</li>
+                        <li>@Html.ActionLink("Login", "Login", "Home")</li>
+                        <li>@Html.ActionLink("Contact", "Contact", "Home")</li>*@
+                </ul>
+                <div style="position:absolute; right:160px; top:13px;">
+                    @if (Session["UserName"] != null)
+                    {
+                        <p class="loginLabel">Mirësevjen, @Session["UserName"].ToString() (@Html.ActionLink("Dil", "Logout", "Home")) </p>
+                    }
+                    else
+                    {
+                        <p class="loginLabel">Nuk ke hyrë në llogari(@Html.ActionLink("Hyr", "Login", "Home"))</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+        @RenderBody()
+        <footer></footer>
+    </div>
+
+</body>
+</html>
